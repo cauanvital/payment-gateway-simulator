@@ -81,9 +81,9 @@ func Load() (*Config, error) {
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "cardflow"),
-			Password: getEnv("DB_PASSWORD", "cardflow"),
-			Name:     getEnv("DB_NAME", "cardflow"),
+			User:     getEnv("DB_USER", "pgsim"),
+			Password: getEnv("DB_PASSWORD", "pgsim"),
+			Name:     getEnv("DB_NAME", "pgsim"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 		Log: LogConfig{
