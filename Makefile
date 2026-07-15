@@ -1,0 +1,56 @@
+.DEFAULT_GOAL := help
+BINARY := bin/server
+PKG := ./...
+
+.PHONY: help
+help: ## Lista os comandos disponíveis
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: run
+run: ## Roda o servidor localmente
+	go run ./cmd/server
+
+.PHONY: build
+build: ## Compila o binário em bin/server
+	go build -o $(BINARY) ./cmd/server
+
+.PHONY: test
+test: ## Roda os testes
+	go test -race -count=1 $(PKG)
+
+.PHONY: cover
+cover: ## Roda os testes com relatório de cobertura
+	go test -race -coverprofile=coverage.out $(PKG)
+	go tool cover -func=coverage.out
+
+.PHONY: fmt
+fmt: ## Formata o código
+	gofmt -w .
+
+.PHONY: fmt-check
+fmt-check: ## Falha se houver arquivos não formatados
+	@out=$$(gofmt -l .); if [ -n "$$out" ]; then echo "Arquivos não formatados:"; echo "$$out"; exit 1; fi
+
+.PHONY: vet
+vet: ## Roda o go vet
+	go vet $(PKG)
+
+.PHONY: tidy
+tidy: ## Sincroniza as dependências do go.mod
+	go mod tidy
+
+.PHONY: check
+check: fmt-check vet test ## Roda todas as verificações de qualidade
+
+.PHONY: up
+up: ## Sobe app + banco via docker compose
+	docker compose up --build
+
+.PHONY: down
+down: ## Derruba os containers
+	docker compose down
+
+.PHONY: clean
+clean: ## Remove artefatos de build
+	rm -rf bin coverage.out
