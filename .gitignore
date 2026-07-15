@@ -1,0 +1,40 @@
+# Binaries and build output
+/bin/
+/build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+server
+
+# Test binary, coverage
+*.test
+*.out
+coverage.*
+/coverage/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Environment / secrets
+.env
+.env.local
+*.local.env
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Vendored deps (using modules)
+/vendor/
+
+# Generated docs (Swagger regenerates)
+/docs/swagger.json
+/docs/swagger.yaml
+
+# Nota de planejamento pessoal (não versionar)
+/ideia_payment_gateway.md
