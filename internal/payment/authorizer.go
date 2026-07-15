@@ -1,6 +1,8 @@
 package payment
 
 import (
+	"crypto/rand"
+	"math/big"
 	"strings"
 
 	"github.com/cauanvital/payment-gateway-simulator/internal/models"
@@ -36,5 +38,11 @@ func (Authorizer) Authorize(tx *models.Transaction, card string) Decision {
 }
 
 func getAuthCode() string {
-	return ""
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 6)
+	for i := range b {
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[n.Int64()]
+	}
+	return string(b)
 }
