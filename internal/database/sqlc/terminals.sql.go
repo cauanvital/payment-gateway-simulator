@@ -8,7 +8,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createTerminal = `-- name: CreateTerminal :one
@@ -18,8 +18,8 @@ RETURNING id, serial, merchant_id, status, created_at
 `
 
 type CreateTerminalParams struct {
-	MerchantID pgtype.UUID `json:"merchant_id"`
-	Serial     string      `json:"serial"`
+	MerchantID uuid.UUID `json:"merchant_id"`
+	Serial     string    `json:"serial"`
 }
 
 func (q *Queries) CreateTerminal(ctx context.Context, arg CreateTerminalParams) (Terminal, error) {
@@ -40,7 +40,7 @@ SELECT id, serial, merchant_id, status, created_at FROM terminals
 WHERE id = $1
 `
 
-func (q *Queries) GetTerminal(ctx context.Context, id pgtype.UUID) (Terminal, error) {
+func (q *Queries) GetTerminal(ctx context.Context, id uuid.UUID) (Terminal, error) {
 	row := q.db.QueryRow(ctx, getTerminal, id)
 	var i Terminal
 	err := row.Scan(
@@ -59,7 +59,7 @@ WHERE merchant_id = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListTerminals(ctx context.Context, merchantID pgtype.UUID) ([]Terminal, error) {
+func (q *Queries) ListTerminals(ctx context.Context, merchantID uuid.UUID) ([]Terminal, error) {
 	rows, err := q.db.Query(ctx, listTerminals, merchantID)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ RETURNING id, serial, merchant_id, status, created_at
 `
 
 type UpdateTerminalStatusParams struct {
-	ID     pgtype.UUID    `json:"id"`
+	ID     uuid.UUID      `json:"id"`
 	Status TerminalStatus `json:"status"`
 }
 

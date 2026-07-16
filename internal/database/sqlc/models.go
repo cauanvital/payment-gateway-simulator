@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -149,23 +150,23 @@ type IdempotencyKey struct {
 }
 
 type Merchant struct {
-	ID        pgtype.UUID        `json:"id"`
+	ID        uuid.UUID          `json:"id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Terminal struct {
-	ID         pgtype.UUID        `json:"id"`
+	ID         uuid.UUID          `json:"id"`
 	Serial     string             `json:"serial"`
-	MerchantID pgtype.UUID        `json:"merchant_id"`
+	MerchantID uuid.UUID          `json:"merchant_id"`
 	Status     TerminalStatus     `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type Transaction struct {
-	ID                pgtype.UUID        `json:"id"`
-	MerchantID        pgtype.UUID        `json:"merchant_id"`
-	TerminalID        pgtype.UUID        `json:"terminal_id"`
+	ID                uuid.UUID          `json:"id"`
+	MerchantID        uuid.UUID          `json:"merchant_id"`
+	TerminalID        uuid.UUID          `json:"terminal_id"`
 	Amount            int64              `json:"amount"`
 	Currency          string             `json:"currency"`
 	PaymentMethod     PaymentMethod      `json:"payment_method"`
@@ -176,8 +177,8 @@ type Transaction struct {
 }
 
 type TransactionEvent struct {
-	ID            pgtype.UUID        `json:"id"`
-	TransactionID pgtype.UUID        `json:"transaction_id"`
+	ID            uuid.UUID          `json:"id"`
+	TransactionID uuid.UUID          `json:"transaction_id"`
 	Event         string             `json:"event"`
 	Payload       []byte             `json:"payload"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`

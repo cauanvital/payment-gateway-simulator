@@ -8,7 +8,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createMerchant = `-- name: CreateMerchant :one
@@ -29,7 +29,7 @@ SELECT id, name, created_at FROM merchants
 WHERE id = $1
 `
 
-func (q *Queries) GetMerchant(ctx context.Context, id pgtype.UUID) (Merchant, error) {
+func (q *Queries) GetMerchant(ctx context.Context, id uuid.UUID) (Merchant, error) {
 	row := q.db.QueryRow(ctx, getMerchant, id)
 	var i Merchant
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
