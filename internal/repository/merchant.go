@@ -21,7 +21,8 @@ func (r *MerchantRepository) Create(ctx context.Context, name string) (*models.M
 	if err != nil {
 		return nil, err
 	}
-	return toDomainMerchant(row), nil
+	merchant := toDomainMerchant(row)
+	return &merchant, nil
 }
 
 func (r *MerchantRepository) Get(ctx context.Context, id uuid.UUID) (*models.Merchant, error) {
@@ -29,7 +30,8 @@ func (r *MerchantRepository) Get(ctx context.Context, id uuid.UUID) (*models.Mer
 	if err != nil {
 		return nil, err
 	}
-	return toDomainMerchant(row), nil
+	merchant := toDomainMerchant(row)
+	return &merchant, nil
 }
 
 func (r *MerchantRepository) List(ctx context.Context) ([]models.Merchant, error) {
@@ -40,13 +42,13 @@ func (r *MerchantRepository) List(ctx context.Context) ([]models.Merchant, error
 
 	domainRows := make([]models.Merchant, len(rows))
 	for i, row := range rows {
-		domainRows[i] = *toDomainMerchant(row)
+		domainRows[i] = toDomainMerchant(row)
 	}
 	return domainRows, nil
 }
 
-func toDomainMerchant(row sqlc.Merchant) *models.Merchant {
-	return &models.Merchant{
+func toDomainMerchant(row sqlc.Merchant) models.Merchant {
+	return models.Merchant{
 		ID:        row.ID,
 		Name:      row.Name,
 		CreatedAt: row.CreatedAt.Time,
