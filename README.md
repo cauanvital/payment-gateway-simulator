@@ -23,7 +23,7 @@ pagamento, com foco em código limpo e testável:
 
 | Camada           | Tecnologia                     |
 | ---------------- | ------------------------------ |
-| Linguagem        | Go 1.24                        |
+| Linguagem        | Go 1.25                        |
 | Roteamento HTTP  | [Chi](https://github.com/go-chi/chi) |
 | Banco de dados   | PostgreSQL 16                  |
 | Acesso a dados   | sqlc (planejado)               |
@@ -92,7 +92,7 @@ A API sobe em `http://localhost:8080`.
 
 ### Localmente
 
-Requer Go 1.24 e um Postgres acessível (as variáveis de ambiente têm defaults
+Requer Go 1.25 e um Postgres acessível (as variáveis de ambiente têm defaults
 para desenvolvimento — veja `.env.example`).
 
 ```bash

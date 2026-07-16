@@ -40,11 +40,11 @@ func (r *MerchantRepository) List(ctx context.Context) ([]models.Merchant, error
 		return nil, err
 	}
 
-	domainRows := make([]models.Merchant, len(rows))
+	merchants := make([]models.Merchant, len(rows))
 	for i, row := range rows {
-		domainRows[i] = toDomainMerchant(row)
+		merchants[i] = toDomainMerchant(row)
 	}
-	return domainRows, nil
+	return merchants, nil
 }
 
 func toDomainMerchant(row sqlc.Merchant) models.Merchant {
