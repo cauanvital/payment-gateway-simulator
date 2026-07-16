@@ -47,6 +47,15 @@ func (r *TerminalRepository) List(ctx context.Context, merchantID uuid.UUID) ([]
 	return terminals, nil
 }
 
+func (r *TerminalRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status models.TerminalStatus) (*models.Terminal, error) {
+	row, err := r.q.UpdateTerminalStatus(ctx, sqlc.UpdateTerminalStatusParams{ID: id, Status: sqlc.TerminalStatus(status)})
+	if err != nil {
+		return nil, err
+	}
+	terminal := toDomainTerminal(row)
+	return &terminal, nil
+}
+
 func toDomainTerminal(row sqlc.Terminal) models.Terminal {
 	return models.Terminal{
 		ID:         row.ID,
