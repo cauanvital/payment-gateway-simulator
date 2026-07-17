@@ -6,7 +6,6 @@
 *.dll
 *.so
 *.dylib
-server
 
 # Test binary, coverage
 *.test

@@ -6,14 +6,20 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cauanvital/payment-gateway-simulator/internal/handlers"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 )
 
+type Handlers struct {
+	Merchant *handlers.MerchantHandler
+	Terminal *handlers.TerminalHandler
+}
+
 // Router constrói o *chi.Mux com os middlewares base e as rotas
 // registradas. Handlers de domínio serão adicionados aqui conforme o
 // projeto evoluir.
-func Router(logger *slog.Logger) http.Handler {
+func Router(logger *slog.Logger, h Handlers) http.Handler {
 	r := chi.NewRouter()
 
 	// Middlewares base. Idempotência e request-scoped logging entram
@@ -27,6 +33,19 @@ func Router(logger *slog.Logger) http.Handler {
 	// está de pé.
 	r.Get("/health", healthHandler)
 	r.Get("/healthz", healthHandler)
+
+	r.Route("/merchants", func(r chi.Router) {
+		r.Post("/", h.Merchant.Create)
+		r.Get("/", h.Merchant.List)
+		r.Get("/{id}", h.Merchant.Get)
+		r.Get("/{merchant_id}/terminals", h.Terminal.List)
+	})
+	r.Route("/terminals", func(r chi.Router) {
+		r.Post("/", h.Terminal.Create)
+		r.Post("/{id}/block", h.Terminal.Block)
+		r.Post("/{id}/activate", h.Terminal.Activate)
+		r.Get("/{id}", h.Terminal.Get)
+	})
 
 	return r
 }

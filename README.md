@@ -131,7 +131,7 @@ make cover      # relatório de cobertura
 
 - [x] Configuração do projeto (servidor, config, Docker, CI)
 - [x] Migrations e schema (merchants, terminals, transactions, events, idempotency)
-- [ ] CRUD de merchants e terminals
+- [x] CRUD de merchants e terminals
 - [ ] Máquina de estados e PaymentService
 - [ ] Endpoints de captura e estorno
 - [ ] Middleware de idempotência
