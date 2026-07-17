@@ -157,7 +157,3 @@ func newTerminalResponse(m models.Terminal) terminalResponse {
 		CreatedAt:  m.CreatedAt,
 	}
 }
-
-type updateTerminalStatusRequest struct {
-	Status models.TerminalStatus `json:"terminal_status"`
-}
