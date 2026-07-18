@@ -13,8 +13,7 @@ import (
 
 const createTerminal = `-- name: CreateTerminal :one
 INSERT INTO terminals (merchant_id, serial)
-VALUES ($1, $2)
-RETURNING id, serial, merchant_id, status, created_at
+VALUES ($1, $2) RETURNING id, serial, merchant_id, status, created_at
 `
 
 type CreateTerminalParams struct {
@@ -36,8 +35,7 @@ func (q *Queries) CreateTerminal(ctx context.Context, arg CreateTerminalParams) 
 }
 
 const getTerminal = `-- name: GetTerminal :one
-SELECT id, serial, merchant_id, status, created_at FROM terminals
-WHERE id = $1
+SELECT id, serial, merchant_id, status, created_at FROM terminals WHERE id = $1
 `
 
 func (q *Queries) GetTerminal(ctx context.Context, id uuid.UUID) (Terminal, error) {
@@ -54,9 +52,7 @@ func (q *Queries) GetTerminal(ctx context.Context, id uuid.UUID) (Terminal, erro
 }
 
 const listTerminals = `-- name: ListTerminals :many
-SELECT id, serial, merchant_id, status, created_at FROM terminals
-WHERE merchant_id = $1
-ORDER BY created_at DESC
+SELECT id, serial, merchant_id, status, created_at FROM terminals WHERE merchant_id = $1 ORDER BY created_at DESC
 `
 
 func (q *Queries) ListTerminals(ctx context.Context, merchantID uuid.UUID) ([]Terminal, error) {
@@ -86,10 +82,7 @@ func (q *Queries) ListTerminals(ctx context.Context, merchantID uuid.UUID) ([]Te
 }
 
 const updateTerminalStatus = `-- name: UpdateTerminalStatus :one
-UPDATE terminals
-SET status = $2
-WHERE id = $1
-RETURNING id, serial, merchant_id, status, created_at
+UPDATE terminals SET status = $2 WHERE id = $1 RETURNING id, serial, merchant_id, status, created_at
 `
 
 type UpdateTerminalStatusParams struct {

@@ -13,8 +13,7 @@ import (
 
 const createMerchant = `-- name: CreateMerchant :one
 INSERT INTO merchants (name)
-VALUES ($1)
-RETURNING id, name, created_at
+VALUES ($1) RETURNING id, name, created_at
 `
 
 func (q *Queries) CreateMerchant(ctx context.Context, name string) (Merchant, error) {
@@ -25,8 +24,7 @@ func (q *Queries) CreateMerchant(ctx context.Context, name string) (Merchant, er
 }
 
 const getMerchant = `-- name: GetMerchant :one
-SELECT id, name, created_at FROM merchants
-WHERE id = $1
+SELECT id, name, created_at FROM merchants WHERE id = $1
 `
 
 func (q *Queries) GetMerchant(ctx context.Context, id uuid.UUID) (Merchant, error) {
@@ -37,8 +35,7 @@ func (q *Queries) GetMerchant(ctx context.Context, id uuid.UUID) (Merchant, erro
 }
 
 const listMerchants = `-- name: ListMerchants :many
-SELECT id, name, created_at FROM merchants
-ORDER BY created_at DESC
+SELECT id, name, created_at FROM merchants ORDER BY created_at DESC
 `
 
 func (q *Queries) ListMerchants(ctx context.Context) ([]Merchant, error) {
