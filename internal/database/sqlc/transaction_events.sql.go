@@ -35,12 +35,12 @@ func (q *Queries) CreateTransactionEvent(ctx context.Context, arg CreateTransact
 	return i, err
 }
 
-const listTransactionEvent = `-- name: ListTransactionEvent :many
-SELECT id, transaction_id, event, payload, created_at FROM transaction_events WHERE transaction_id = $1 ORDER BY created_at DESC
+const listTransactionEvents = `-- name: ListTransactionEvents :many
+SELECT id, transaction_id, event, payload, created_at FROM transaction_events WHERE transaction_id = $1 ORDER BY created_at ASC
 `
 
-func (q *Queries) ListTransactionEvent(ctx context.Context, transactionID uuid.UUID) ([]TransactionEvent, error) {
-	rows, err := q.db.Query(ctx, listTransactionEvent, transactionID)
+func (q *Queries) ListTransactionEvents(ctx context.Context, transactionID uuid.UUID) ([]TransactionEvent, error) {
+	rows, err := q.db.Query(ctx, listTransactionEvents, transactionID)
 	if err != nil {
 		return nil, err
 	}

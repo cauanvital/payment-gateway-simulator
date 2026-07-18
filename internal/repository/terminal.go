@@ -25,8 +25,17 @@ func (r *TerminalRepository) Create(ctx context.Context, merchantID uuid.UUID, s
 	return &terminal, nil
 }
 
-func (r *TerminalRepository) Get(ctx context.Context, id uuid.UUID) (*models.Terminal, error) {
-	row, err := r.q.GetTerminal(ctx, id)
+func (r *TerminalRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Terminal, error) {
+	row, err := r.q.GetTerminalByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	terminal := toDomainTerminal(row)
+	return &terminal, nil
+}
+
+func (r *TerminalRepository) GetBySerial(ctx context.Context, serial string) (*models.Terminal, error) {
+	row, err := r.q.GetTerminalBySerial(ctx, serial)
 	if err != nil {
 		return nil, err
 	}

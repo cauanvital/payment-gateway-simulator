@@ -34,12 +34,29 @@ func (q *Queries) CreateTerminal(ctx context.Context, arg CreateTerminalParams) 
 	return i, err
 }
 
-const getTerminal = `-- name: GetTerminal :one
+const getTerminalByID = `-- name: GetTerminalByID :one
 SELECT id, serial, merchant_id, status, created_at FROM terminals WHERE id = $1
 `
 
-func (q *Queries) GetTerminal(ctx context.Context, id uuid.UUID) (Terminal, error) {
-	row := q.db.QueryRow(ctx, getTerminal, id)
+func (q *Queries) GetTerminalByID(ctx context.Context, id uuid.UUID) (Terminal, error) {
+	row := q.db.QueryRow(ctx, getTerminalByID, id)
+	var i Terminal
+	err := row.Scan(
+		&i.ID,
+		&i.Serial,
+		&i.MerchantID,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getTerminalBySerial = `-- name: GetTerminalBySerial :one
+SELECT id, serial, merchant_id, status, created_at FROM terminals WHERE serial = $1
+`
+
+func (q *Queries) GetTerminalBySerial(ctx context.Context, serial string) (Terminal, error) {
+	row := q.db.QueryRow(ctx, getTerminalBySerial, serial)
 	var i Terminal
 	err := row.Scan(
 		&i.ID,

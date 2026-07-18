@@ -12,7 +12,8 @@ import (
 
 type TerminalRepository interface {
 	Create(ctx context.Context, merchantID uuid.UUID, serial string) (*models.Terminal, error)
-	Get(ctx context.Context, id uuid.UUID) (*models.Terminal, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Terminal, error)
+	GetBySerial(ctx context.Context, serial string) (*models.Terminal, error)
 	List(ctx context.Context, merchantID uuid.UUID) ([]models.Terminal, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status models.TerminalStatus) (*models.Terminal, error)
 }
@@ -39,7 +40,7 @@ func (s *TerminalService) Create(ctx context.Context, merchantID uuid.UUID, seri
 }
 
 func (s *TerminalService) Get(ctx context.Context, id uuid.UUID) (*models.Terminal, error) {
-	terminal, err := s.repo.Get(ctx, id)
+	terminal, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrTerminalNotFound

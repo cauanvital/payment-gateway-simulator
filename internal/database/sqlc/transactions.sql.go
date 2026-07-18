@@ -41,7 +41,7 @@ func (q *Queries) AuthorizeTransaction(ctx context.Context, arg AuthorizeTransac
 }
 
 const captureTransaction = `-- name: CaptureTransaction :one
-UPDATE transactions SET status = 'CAPTURED', updated_at = now WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
+UPDATE transactions SET status = 'CAPTURED', updated_at = now() WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
 `
 
 func (q *Queries) CaptureTransaction(ctx context.Context, id uuid.UUID) (Transaction, error) {
@@ -100,7 +100,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 }
 
 const declineTransaction = `-- name: DeclineTransaction :one
-UPDATE transactions SET status = 'DECLINED', updated_at = now WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
+UPDATE transactions SET status = 'DECLINED', updated_at = now() WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
 `
 
 func (q *Queries) DeclineTransaction(ctx context.Context, id uuid.UUID) (Transaction, error) {
@@ -143,78 +143,8 @@ func (q *Queries) GetTransaction(ctx context.Context, id uuid.UUID) (Transaction
 	return i, err
 }
 
-const listMerchantTransactions = `-- name: ListMerchantTransactions :many
-SELECT id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at FROM transactions WHERE merchant_id = $1 ORDER BY created_at DESC
-`
-
-func (q *Queries) ListMerchantTransactions(ctx context.Context, merchantID uuid.UUID) ([]Transaction, error) {
-	rows, err := q.db.Query(ctx, listMerchantTransactions, merchantID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Transaction
-	for rows.Next() {
-		var i Transaction
-		if err := rows.Scan(
-			&i.ID,
-			&i.MerchantID,
-			&i.TerminalID,
-			&i.Amount,
-			&i.Currency,
-			&i.PaymentMethod,
-			&i.Status,
-			&i.AuthorizationCode,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listTerminalTransactions = `-- name: ListTerminalTransactions :many
-SELECT id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at FROM transactions WHERE terminal_id = $1 ORDER BY created_at DESC
-`
-
-func (q *Queries) ListTerminalTransactions(ctx context.Context, terminalID uuid.UUID) ([]Transaction, error) {
-	rows, err := q.db.Query(ctx, listTerminalTransactions, terminalID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Transaction
-	for rows.Next() {
-		var i Transaction
-		if err := rows.Scan(
-			&i.ID,
-			&i.MerchantID,
-			&i.TerminalID,
-			&i.Amount,
-			&i.Currency,
-			&i.PaymentMethod,
-			&i.Status,
-			&i.AuthorizationCode,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const refundTransaction = `-- name: RefundTransaction :one
-UPDATE transactions SET status = 'REFUNDED', updated_at = now WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
+UPDATE transactions SET status = 'REFUNDED', updated_at = now() WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
 `
 
 func (q *Queries) RefundTransaction(ctx context.Context, id uuid.UUID) (Transaction, error) {

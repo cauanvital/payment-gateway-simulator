@@ -7,19 +7,13 @@ UPDATE transactions SET status = 'AUTHORIZED', authorization_code = $2, updated_
 WHERE id = $1 RETURNING *;
 
 -- name: DeclineTransaction :one
-UPDATE transactions SET status = 'DECLINED', updated_at = now WHERE id = $1 RETURNING *;
+UPDATE transactions SET status = 'DECLINED', updated_at = now() WHERE id = $1 RETURNING *;
 
 -- name: CaptureTransaction :one
-UPDATE transactions SET status = 'CAPTURED', updated_at = now WHERE id = $1 RETURNING *;
+UPDATE transactions SET status = 'CAPTURED', updated_at = now() WHERE id = $1 RETURNING *;
 
 -- name: RefundTransaction :one
-UPDATE transactions SET status = 'REFUNDED', updated_at = now WHERE id = $1 RETURNING *;
+UPDATE transactions SET status = 'REFUNDED', updated_at = now() WHERE id = $1 RETURNING *;
 
 -- name: GetTransaction :one
 SELECT * FROM transactions WHERE id = $1;
-
--- name: ListTerminalTransactions :many
-SELECT * FROM transactions WHERE terminal_id = $1 ORDER BY created_at DESC;
-
--- name: ListMerchantTransactions :many
-SELECT * FROM transactions WHERE merchant_id = $1 ORDER BY created_at DESC;
