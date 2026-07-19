@@ -9,14 +9,12 @@ import (
 	"github.com/cauanvital/payment-gateway-simulator/internal/payment"
 	"github.com/cauanvital/payment-gateway-simulator/internal/repository"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type TxManager interface {
-	WithinTx(ctx context.Context, fn func(q *sqlc.Queries) error) error
-}
-
 var ErrTerminalBlocked = errors.New("current terminal is blocked")
+var ErrTransactionNotFound = errors.New("transaction not found")
 
 type PaymentService struct {
 	pool         *pgxpool.Pool
@@ -49,6 +47,9 @@ func (s *PaymentService) CreateTransaction(
 ) (*models.Transaction, error) {
 	terminal, err := s.terminalRepo.GetBySerial(ctx, terminalSerial)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTerminalNotFound
+		}
 		return nil, err
 	}
 	if terminal.Status != models.TerminalActive {
@@ -133,6 +134,9 @@ func (s *PaymentService) GetTransaction(
 
 	transaction, err := txRepo.Get(ctx, transactionID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, ErrTransactionNotFound
+		}
 		return nil, nil, err
 	}
 
@@ -157,11 +161,14 @@ func (s *PaymentService) Capture(ctx context.Context, id uuid.UUID) (*models.Tra
 
 	transaction, err := txRepo.Get(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTransactionNotFound
+		}
 		return nil, err
 	}
 
 	if err := s.stateMachine.Capture(transaction); err != nil {
-		return nil, err // ErrInvalidTransition — o handler traduz pra 409
+		return nil, err
 	}
 
 	updated, err := txRepo.Capture(ctx, id)
@@ -192,6 +199,9 @@ func (s *PaymentService) Refund(ctx context.Context, id uuid.UUID) (*models.Tran
 
 	transaction, err := txRepo.Get(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTransactionNotFound
+		}
 		return nil, err
 	}
 

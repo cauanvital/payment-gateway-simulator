@@ -2,7 +2,6 @@ package payment
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/cauanvital/payment-gateway-simulator/internal/models"
 )
@@ -15,6 +14,8 @@ var allowedTransitions = map[models.TransactionStatus][]models.TransactionStatus
 	models.TransactionDeclined:   {},
 }
 
+var ErrInvalidTransition = errors.New("invalid state transition")
+
 type PaymentStateMachine struct{}
 
 func (PaymentStateMachine) CanTransition(from, to models.TransactionStatus) error {
@@ -23,7 +24,7 @@ func (PaymentStateMachine) CanTransition(from, to models.TransactionStatus) erro
 			return nil
 		}
 	}
-	return &TransitionError{from, to}
+	return ErrInvalidTransition
 }
 
 func (m PaymentStateMachine) Authorize(tx *models.Transaction) error {
@@ -56,18 +57,4 @@ func (m PaymentStateMachine) Decline(tx *models.Transaction) error {
 	}
 	tx.Status = models.TransactionDeclined
 	return nil
-}
-
-var ErrInvalidTransition = errors.New("invalid state transition")
-
-type TransitionError struct {
-	From, To models.TransactionStatus
-}
-
-func (e *TransitionError) Error() string {
-	return fmt.Sprintf("invalid transition: %s → %s", e.From, e.To)
-}
-
-func (e *TransitionError) Is(target error) bool {
-	return target == ErrInvalidTransition
 }

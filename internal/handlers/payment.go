@@ -3,10 +3,14 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/cauanvital/payment-gateway-simulator/internal/models"
+	"github.com/cauanvital/payment-gateway-simulator/internal/payment"
+	"github.com/cauanvital/payment-gateway-simulator/internal/service"
 	"github.com/google/uuid"
 )
 
@@ -31,6 +35,24 @@ type PaymentHandler struct {
 
 func NewPaymentHandler(service PaymentService, logger *slog.Logger) *PaymentHandler {
 	return &PaymentHandler{service: service, logger: logger}
+}
+
+func (h *PaymentHandler) CreateTransaction()
+
+func (h *PaymentHandler) handleError(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, service.ErrTerminalNotFound):
+		respondError(w, http.StatusNotFound, err.Error())
+	case errors.Is(err, service.ErrTransactionNotFound):
+		respondError(w, http.StatusNotFound, err.Error())
+	case errors.Is(err, service.ErrTerminalBlocked):
+		respondError(w, http.StatusUnauthorized, err.Error())
+	case errors.Is(err, payment.ErrInvalidTransition):
+		respondError(w, http.StatusUnauthorized, err.Error())
+	default:
+		h.logger.Error("unexpected error", "error", err)
+		respondError(w, http.StatusInternalServerError, "internal server error")
+	}
 }
 
 type createTransactionRequest struct {
