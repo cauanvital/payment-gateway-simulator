@@ -132,8 +132,8 @@ make cover      # relatório de cobertura
 - [x] Configuração do projeto (servidor, config, Docker, CI)
 - [x] Migrations e schema (merchants, terminals, transactions, events, idempotency)
 - [x] CRUD de merchants e terminals
-- [ ] Máquina de estados e TransactionService
-- [ ] Endpoints de captura e estorno
+- [x] Máquina de estados e TransactionService
+- [x] Endpoints de captura e estorno
 - [ ] Middleware de idempotência
 - [ ] Documentação Swagger
 - [ ] Cobertura de testes (state machine, service, HTTP)
