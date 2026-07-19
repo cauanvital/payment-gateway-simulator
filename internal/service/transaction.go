@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/cauanvital/payment-gateway-simulator/internal/database/sqlc"
@@ -107,7 +108,12 @@ func (s *TransactionService) Create(
 		if err != nil {
 			return nil, err
 		}
-		if _, err := eventRepo.Create(ctx, transaction.ID, "declined", nil); err != nil {
+
+		reasonPayload, err := json.Marshal(map[string]string{"reason": decision.Reason})
+		if err != nil {
+			return nil, err
+		}
+		if _, err := eventRepo.Create(ctx, transaction.ID, "declined", reasonPayload); err != nil {
 			return nil, err
 		}
 	}

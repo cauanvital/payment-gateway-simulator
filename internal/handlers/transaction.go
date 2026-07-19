@@ -76,9 +76,14 @@ func (h *TransactionHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	responseEvents := make([]transactionEventResponse, len(events))
+	for i, m := range events {
+		responseEvents[i] = newTransactionEventResponse(m)
+	}
+
 	respondJSON(w, http.StatusOK, map[string]any{
-		"transaction": transaction,
-		"events":      events,
+		"transaction": newTransactionResponse(*transaction),
+		"events":      responseEvents,
 	})
 }
 
@@ -97,7 +102,7 @@ func (h *TransactionHandler) Capture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusOK, transaction)
+	respondJSON(w, http.StatusOK, newTransactionResponse(*transaction))
 }
 
 func (h *TransactionHandler) Refund(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +120,7 @@ func (h *TransactionHandler) Refund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusOK, transaction)
+	respondJSON(w, http.StatusOK, newTransactionResponse(*transaction))
 }
 
 func (h *TransactionHandler) handleError(w http.ResponseWriter, err error) {
@@ -125,9 +130,9 @@ func (h *TransactionHandler) handleError(w http.ResponseWriter, err error) {
 	case errors.Is(err, service.ErrTransactionNotFound):
 		respondError(w, http.StatusNotFound, err.Error())
 	case errors.Is(err, service.ErrTerminalBlocked):
-		respondError(w, http.StatusUnauthorized, err.Error())
+		respondError(w, http.StatusConflict, err.Error())
 	case errors.Is(err, payment.ErrInvalidTransition):
-		respondError(w, http.StatusUnauthorized, err.Error())
+		respondError(w, http.StatusConflict, err.Error())
 	default:
 		h.logger.Error("unexpected error", "error", err)
 		respondError(w, http.StatusInternalServerError, "internal server error")
