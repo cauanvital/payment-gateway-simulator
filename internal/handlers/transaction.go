@@ -11,11 +11,12 @@ import (
 	"github.com/cauanvital/payment-gateway-simulator/internal/models"
 	"github.com/cauanvital/payment-gateway-simulator/internal/payment"
 	"github.com/cauanvital/payment-gateway-simulator/internal/service"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 type PaymentService interface {
-	CreateTransaction(
+	Create(
 		ctx context.Context,
 		terminalSerial string,
 		amount int64,
@@ -23,23 +24,101 @@ type PaymentService interface {
 		method models.PaymentMethod,
 		card string,
 	) (*models.Transaction, error)
-	GetTransaction(ctx context.Context, transactionID uuid.UUID) (*models.Transaction, []models.TransactionEvent, error)
+	Get(ctx context.Context, transactionID uuid.UUID) (*models.Transaction, []models.TransactionEvent, error)
 	Capture(ctx context.Context, id uuid.UUID) (*models.Transaction, error)
 	Refund(ctx context.Context, id uuid.UUID) (*models.Transaction, error)
 }
 
-type PaymentHandler struct {
+type TransactionHandler struct {
 	service PaymentService
 	logger  *slog.Logger
 }
 
-func NewPaymentHandler(service PaymentService, logger *slog.Logger) *PaymentHandler {
-	return &PaymentHandler{service: service, logger: logger}
+func NewTransactionHandler(service PaymentService, logger *slog.Logger) *TransactionHandler {
+	return &TransactionHandler{service: service, logger: logger}
 }
 
-func (h *PaymentHandler) CreateTransaction()
+func (h *TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var req createTransactionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
 
-func (h *PaymentHandler) handleError(w http.ResponseWriter, err error) {
+	transaction, err := h.service.Create(
+		r.Context(),
+		req.TerminalSerial,
+		req.Amount,
+		req.Currency,
+		req.PaymentMethod,
+		req.Card,
+	)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusCreated, newTransactionResponse(*transaction))
+}
+
+func (h *TransactionHandler) Get(w http.ResponseWriter, r *http.Request) {
+	rawID := chi.URLParam(r, "id")
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "invalid transaction id")
+		return
+	}
+
+	transaction, events, err := h.service.Get(r.Context(), id)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]any{
+		"transaction": transaction,
+		"events":      events,
+	})
+}
+
+func (h *TransactionHandler) Capture(w http.ResponseWriter, r *http.Request) {
+	rawID := chi.URLParam(r, "id")
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "invalid transaction id")
+		return
+	}
+
+	transaction, err := h.service.Capture(r.Context(), id)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, transaction)
+}
+
+func (h *TransactionHandler) Refund(w http.ResponseWriter, r *http.Request) {
+	rawID := chi.URLParam(r, "id")
+
+	id, err := uuid.Parse(rawID)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "invalid transaction id")
+		return
+	}
+
+	transaction, err := h.service.Refund(r.Context(), id)
+	if err != nil {
+		h.handleError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, transaction)
+}
+
+func (h *TransactionHandler) handleError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, service.ErrTerminalNotFound):
 		respondError(w, http.StatusNotFound, err.Error())

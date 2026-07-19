@@ -16,20 +16,20 @@ import (
 var ErrTerminalBlocked = errors.New("current terminal is blocked")
 var ErrTransactionNotFound = errors.New("transaction not found")
 
-type PaymentService struct {
+type TransactionService struct {
 	pool         *pgxpool.Pool
 	terminalRepo TerminalRepository
 	stateMachine *payment.PaymentStateMachine
 	authorizer   *payment.Authorizer
 }
 
-func NewPaymentService(
+func NewTransactionService(
 	pool *pgxpool.Pool,
 	terminalRepo TerminalRepository,
 	sm *payment.PaymentStateMachine,
 	authorizer *payment.Authorizer,
-) *PaymentService {
-	return &PaymentService{
+) *TransactionService {
+	return &TransactionService{
 		pool:         pool,
 		terminalRepo: terminalRepo,
 		stateMachine: sm,
@@ -37,7 +37,7 @@ func NewPaymentService(
 	}
 }
 
-func (s *PaymentService) CreateTransaction(
+func (s *TransactionService) Create(
 	ctx context.Context,
 	terminalSerial string,
 	amount int64,
@@ -118,7 +118,7 @@ func (s *PaymentService) CreateTransaction(
 	return transaction, nil
 }
 
-func (s *PaymentService) GetTransaction(
+func (s *TransactionService) Get(
 	ctx context.Context,
 	transactionID uuid.UUID,
 ) (*models.Transaction, []models.TransactionEvent, error) {
@@ -148,7 +148,7 @@ func (s *PaymentService) GetTransaction(
 	return transaction, transactionEvents, nil
 }
 
-func (s *PaymentService) Capture(ctx context.Context, id uuid.UUID) (*models.Transaction, error) {
+func (s *TransactionService) Capture(ctx context.Context, id uuid.UUID) (*models.Transaction, error) {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (s *PaymentService) Capture(ctx context.Context, id uuid.UUID) (*models.Tra
 	return updated, nil
 }
 
-func (s *PaymentService) Refund(ctx context.Context, id uuid.UUID) (*models.Transaction, error) {
+func (s *TransactionService) Refund(ctx context.Context, id uuid.UUID) (*models.Transaction, error) {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, err
