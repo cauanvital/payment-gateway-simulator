@@ -15,6 +15,7 @@ import (
 	"github.com/cauanvital/payment-gateway-simulator/internal/database"
 	"github.com/cauanvital/payment-gateway-simulator/internal/database/sqlc"
 	"github.com/cauanvital/payment-gateway-simulator/internal/handlers"
+	"github.com/cauanvital/payment-gateway-simulator/internal/payment"
 	"github.com/cauanvital/payment-gateway-simulator/internal/repository"
 	"github.com/cauanvital/payment-gateway-simulator/internal/service"
 )
@@ -54,9 +55,18 @@ func run() error {
 	terminalService := service.NewTerminalService(terminalRepo)
 	terminalHandler := handlers.NewTerminalHandler(terminalService, logger)
 
+	txService := service.NewTransactionService(
+		pool,
+		terminalRepo,
+		&payment.PaymentStateMachine{},
+		&payment.Authorizer{},
+	)
+	txHandler := handlers.NewTransactionHandler(txService, logger)
+
 	handler := api.Router(logger, api.Handlers{
-		Merchant: merchantHandler,
-		Terminal: terminalHandler,
+		Merchant:    merchantHandler,
+		Terminal:    terminalHandler,
+		Transaction: txHandler,
 	})
 	server := api.NewServer(cfg.Server, handler, logger)
 

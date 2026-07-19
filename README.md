@@ -42,7 +42,7 @@ camadas com responsabilidades bem definidas:
 ```mermaid
 flowchart LR
     Client([Cliente]) --> Handler
-    Handler --> Service[PaymentService]
+    Handler --> Service[TransactionService]
     Service --> SM[State Machine]
     Service --> Repo[Repository]
     Repo --> DB[(PostgreSQL)]
@@ -132,7 +132,7 @@ make cover      # relatório de cobertura
 - [x] Configuração do projeto (servidor, config, Docker, CI)
 - [x] Migrations e schema (merchants, terminals, transactions, events, idempotency)
 - [x] CRUD de merchants e terminals
-- [ ] Máquina de estados e PaymentService
+- [ ] Máquina de estados e TransactionService
 - [ ] Endpoints de captura e estorno
 - [ ] Middleware de idempotência
 - [ ] Documentação Swagger

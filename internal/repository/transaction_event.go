@@ -18,6 +18,9 @@ func NewTransactionEventRepository(q *sqlc.Queries) *TransactionEventRepository 
 }
 
 func (r *TransactionEventRepository) Create(ctx context.Context, transactionID uuid.UUID, event string, payload json.RawMessage) (*models.TransactionEvent, error) {
+	if payload == nil {
+		payload = json.RawMessage("{}")
+	}
 	row, err := r.q.CreateTransactionEvent(ctx, sqlc.CreateTransactionEventParams{
 		TransactionID: transactionID,
 		Event:         event,

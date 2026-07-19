@@ -12,8 +12,9 @@ import (
 )
 
 type Handlers struct {
-	Merchant *handlers.MerchantHandler
-	Terminal *handlers.TerminalHandler
+	Merchant    *handlers.MerchantHandler
+	Terminal    *handlers.TerminalHandler
+	Transaction *handlers.TransactionHandler
 }
 
 // Router constrói o *chi.Mux com os middlewares base e as rotas
@@ -45,6 +46,12 @@ func Router(logger *slog.Logger, h Handlers) http.Handler {
 		r.Post("/{id}/block", h.Terminal.Block)
 		r.Post("/{id}/activate", h.Terminal.Activate)
 		r.Get("/{id}", h.Terminal.Get)
+	})
+	r.Route("/transactions", func(r chi.Router) {
+		r.Post("/", h.Transaction.Create)
+		r.Get("/{id}", h.Transaction.Get)
+		r.Post("/{id}/capture", h.Transaction.Capture)
+		r.Post("/{id}/refund", h.Transaction.Refund)
 	})
 
 	return r

@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type PaymentService interface {
+type TransactionService interface {
 	Create(
 		ctx context.Context,
 		terminalSerial string,
@@ -30,11 +30,11 @@ type PaymentService interface {
 }
 
 type TransactionHandler struct {
-	service PaymentService
+	service TransactionService
 	logger  *slog.Logger
 }
 
-func NewTransactionHandler(service PaymentService, logger *slog.Logger) *TransactionHandler {
+func NewTransactionHandler(service TransactionService, logger *slog.Logger) *TransactionHandler {
 	return &TransactionHandler{service: service, logger: logger}
 }
 
