@@ -239,7 +239,7 @@ build a cada push e pull request para `main`.
 - [x] Máquina de estados e TransactionService
 - [x] Autorização fake e registro de eventos
 - [x] Endpoints de captura e estorno
-- [ ] Execução automática das migrations
+- [x] Execução automática das migrations
 - [x] Idempotência transacional com `Idempotency-Key`
 - [ ] Documentação Swagger
 - [ ] Cobertura de testes de state machine, service e HTTP
