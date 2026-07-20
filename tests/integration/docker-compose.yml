@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pgsim
+      POSTGRES_PASSWORD: pgsim
+      POSTGRES_DB: pgsim_test
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pgsim -d pgsim_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15

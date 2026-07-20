@@ -19,6 +19,12 @@ build: ## Compila o binário em bin/server
 test: ## Roda os testes
 	go test -race -count=1 $(PKG)
 
+.PHONY: test-integration
+test-integration: ## Roda os testes de integraÃ§Ã£o com Postgres descartÃ¡vel
+	@trap 'docker compose -f tests/integration/docker-compose.yml down -v' EXIT; \
+		docker compose -f tests/integration/docker-compose.yml up -d --wait; \
+		TEST_DATABASE_URL='postgres://pgsim:pgsim@localhost:55432/pgsim_test?sslmode=disable' go test -tags=integration -count=1 ./tests/integration
+
 .PHONY: cover
 cover: ## Roda os testes com relatório de cobertura
 	go test -race -coverprofile=coverage.out $(PKG)

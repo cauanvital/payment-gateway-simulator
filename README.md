@@ -227,10 +227,15 @@ aprovada já retorna a transação como `CAPTURED`. Consulte `GET
 ```bash
 make test       # go test -race -count=1 ./...
 make cover      # gera e exibe o relatório de cobertura
+make test-integration # sobe um Postgres descartável e testa fluxos de pagamento
 ```
 
 O CI executa verificação de formatação, `go vet`, testes com detector de race e
 build a cada push e pull request para `main`.
+
+Os testes de integração usam Docker Compose, aplicam as migrations em um banco
+novo e cobrem o ciclo de vida da transação, eventos, rollback, idempotência e
+capturas concorrentes.
 
 ## Roadmap
 
