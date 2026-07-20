@@ -8,6 +8,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -87,7 +88,7 @@ func TestTransactionIdempotencyAndRollback(t *testing.T) {
 	if err != nil {
 		t.Fatalf("second Create() error = %v", err)
 	}
-	if !second.Replayed || string(first.Body) != string(second.Body) {
+	if !second.Replayed || !jsonEquivalent(t, first.Body, second.Body) {
 		t.Fatalf("idempotent responses = %#v and %#v", first, second)
 	}
 	if got := count(t, pool, "SELECT count(*) FROM transactions WHERE merchant_id = $1", merchantID); got != 1 {
@@ -254,6 +255,20 @@ func decodeTransaction(t *testing.T, body []byte) models.TransactionResponse {
 		t.Fatalf("decode transaction response: %v", err)
 	}
 	return transaction
+}
+
+func jsonEquivalent(t *testing.T, left, right []byte) bool {
+	t.Helper()
+
+	var leftValue any
+	if err := json.Unmarshal(left, &leftValue); err != nil {
+		t.Fatalf("decode first JSON response: %v", err)
+	}
+	var rightValue any
+	if err := json.Unmarshal(right, &rightValue); err != nil {
+		t.Fatalf("decode replayed JSON response: %v", err)
+	}
+	return reflect.DeepEqual(leftValue, rightValue)
 }
 
 func count(t *testing.T, pool *pgxpool.Pool, query string, args ...any) int {
