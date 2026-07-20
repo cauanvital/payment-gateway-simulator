@@ -7,7 +7,7 @@ pagamentos e boas práticas de back-end.
 
 > ⚠️ **Projeto em construção.** CRUD de merchants e terminais, transações,
 > autorização simulada, captura, estorno e eventos já estão implementados.
-> Documentação Swagger e cobertura de testes ainda são pendências. Veja o
+> Uma interface Swagger UI e cobertura de testes ainda são pendências. Veja o
 > [roadmap](#roadmap).
 
 ## Motivação
@@ -38,6 +38,7 @@ para integrações e testes:
 | Schema | Migrations SQL versionadas |
 | Logs | `log/slog` |
 | Infra | Docker + Docker Compose |
+| Documentação | [OpenAPI 3.0](docs/openapi.yaml) |
 | CI | GitHub Actions (`fmt`, `vet`, testes e build) |
 
 ## Arquitetura
@@ -241,7 +242,8 @@ build a cada push e pull request para `main`.
 - [x] Endpoints de captura e estorno
 - [x] Execução automática das migrations
 - [x] Idempotência transacional com `Idempotency-Key`
-- [ ] Documentação Swagger
+- [x] Especificação OpenAPI 3.0
+- [ ] Interface Swagger UI
 - [ ] Cobertura de testes de state machine, service e HTTP
 
 ## Melhorias futuras

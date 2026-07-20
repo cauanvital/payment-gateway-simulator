@@ -1,0 +1,369 @@
+openapi: 3.0.3
+info:
+  title: Payment Gateway Simulator API
+  version: 0.1.0
+  description: |
+    API de um gateway de pagamentos simulado; não há integração com instituições financeiras reais.
+    Operações de pagamento exigem `Idempotency-Key`: repetir a chave com a mesma
+    requisição devolve a resposta original, sem repetir o efeito de negócio.
+servers:
+  - url: http://localhost:8080
+    description: Desenvolvimento local
+tags:
+  - name: Health
+  - name: Merchants
+  - name: Terminals
+  - name: Transactions
+paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: healthCheck
+      summary: Verifica se a API está disponível
+      responses:
+        '200':
+          description: API disponível
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+  /healthz:
+    get:
+      tags: [Health]
+      operationId: healthCheckAlias
+      summary: Alias do health check
+      responses:
+        '200':
+          description: API disponível
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+  /merchants/:
+    post:
+      tags: [Merchants]
+      operationId: createMerchant
+      summary: Cria um merchant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateMerchantRequest' }
+      responses:
+        '201':
+          description: Merchant criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Merchant' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    get:
+      tags: [Merchants]
+      operationId: listMerchants
+      summary: Lista merchants
+      responses:
+        '200':
+          description: Lista de merchants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Merchant' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /merchants/{id}:
+    get:
+      tags: [Merchants]
+      operationId: getMerchant
+      summary: Consulta um merchant
+      parameters: [{ $ref: '#/components/parameters/MerchantID' }]
+      responses:
+        '200':
+          description: Merchant encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Merchant' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /merchants/{merchant_id}/terminals:
+    get:
+      tags: [Terminals]
+      operationId: listMerchantTerminals
+      summary: Lista os terminais de um merchant
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Lista de terminais
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Terminal' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /terminals/:
+    post:
+      tags: [Terminals]
+      operationId: createTerminal
+      summary: Registra um terminal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTerminalRequest' }
+      responses:
+        '201':
+          description: Terminal criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Terminal' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /terminals/{id}:
+    get:
+      tags: [Terminals]
+      operationId: getTerminal
+      summary: Consulta um terminal
+      parameters: [{ $ref: '#/components/parameters/TerminalID' }]
+      responses:
+        '200':
+          description: Terminal encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Terminal' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /terminals/{id}/block:
+    post:
+      tags: [Terminals]
+      operationId: blockTerminal
+      summary: Bloqueia um terminal
+      parameters: [{ $ref: '#/components/parameters/TerminalID' }]
+      responses:
+        '200':
+          description: Terminal bloqueado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Terminal' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /terminals/{id}/activate:
+    post:
+      tags: [Terminals]
+      operationId: activateTerminal
+      summary: Ativa um terminal
+      parameters: [{ $ref: '#/components/parameters/TerminalID' }]
+      responses:
+        '200':
+          description: Terminal ativado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Terminal' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /transactions/:
+    post:
+      tags: [Transactions]
+      operationId: createTransaction
+      summary: Cria e autoriza uma transação
+      description: Crédito aprovado fica em `AUTHORIZED`; PIX e débito aprovados são capturados automaticamente.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTransactionRequest' }
+      responses:
+        '201':
+          description: Transação criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /transactions/{id}:
+    get:
+      tags: [Transactions]
+      operationId: getTransaction
+      summary: Consulta uma transação e seus eventos
+      parameters: [{ $ref: '#/components/parameters/TransactionID' }]
+      responses:
+        '200':
+          description: Transação e eventos em ordem cronológica
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransactionDetails' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /transactions/{id}/capture:
+    post:
+      tags: [Transactions]
+      operationId: captureTransaction
+      summary: Captura uma transação autorizada
+      parameters:
+        - $ref: '#/components/parameters/TransactionID'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Transação capturada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+  /transactions/{id}/refund:
+    post:
+      tags: [Transactions]
+      operationId: refundTransaction
+      summary: Estorna uma transação capturada
+      parameters:
+        - $ref: '#/components/parameters/TransactionID'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Transação estornada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+components:
+  parameters:
+    MerchantID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TerminalID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    TransactionID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Chave única da operação lógica, com no máximo 255 caracteres.
+      schema: { type: string, minLength: 1, maxLength: 255 }
+      example: venda-001
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: invalid request body }
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: transaction not found }
+    Conflict:
+      description: Estado inválido ou reutilização incompatível da chave de idempotência
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: invalid state transition }
+    InternalServerError:
+      description: Erro interno
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: internal server error }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties: { status: { type: string, example: ok } }
+    Error:
+      type: object
+      required: [error]
+      properties: { error: { type: string } }
+    CreateMerchantRequest:
+      type: object
+      required: [name]
+      properties: { name: { type: string, example: Loja Exemplo } }
+    Merchant:
+      type: object
+      required: [id, name, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        created_at: { type: string, format: date-time }
+    CreateTerminalRequest:
+      type: object
+      required: [merchant_id, serial]
+      properties:
+        merchant_id: { type: string, format: uuid }
+        serial: { type: string, example: STONE-001 }
+    Terminal:
+      type: object
+      required: [id, serial, merchant_id, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        serial: { type: string }
+        merchant_id: { type: string, format: uuid }
+        status: { type: string, enum: [ACTIVE, BLOCKED] }
+        created_at: { type: string, format: date-time }
+    CreateTransactionRequest:
+      type: object
+      required: [terminal_serial, amount, currency, payment_method]
+      properties:
+        terminal_serial: { type: string, example: STONE-001 }
+        amount:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Valor no menor valor da moeda; 1500 representa R$ 15,00.
+          example: 1500
+        currency: { type: string, pattern: '^[A-Z]{3}$', example: BRL }
+        payment_method: { type: string, enum: [CREDIT_CARD, DEBIT_CARD, PIX] }
+        card: { type: string, description: Cartão usado pelas regras de simulação, example: '4111111111111111' }
+    Transaction:
+      type: object
+      required: [id, merchant_id, terminal_id, amount, currency, payment_method, status, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        merchant_id: { type: string, format: uuid }
+        terminal_id: { type: string, format: uuid }
+        amount: { type: integer, format: int64 }
+        currency: { type: string, example: BRL }
+        payment_method: { type: string, enum: [CREDIT_CARD, DEBIT_CARD, PIX] }
+        status: { type: string, enum: [CREATED, AUTHORIZED, CAPTURED, REFUNDED, DECLINED] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    TransactionEvent:
+      type: object
+      required: [id, event, payload, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        event: { type: string, enum: [created, authorized, captured, refunded, declined] }
+        payload: { type: object, additionalProperties: true }
+        created_at: { type: string, format: date-time }
+    TransactionDetails:
+      type: object
+      required: [transaction, events]
+      properties:
+        transaction: { $ref: '#/components/schemas/Transaction' }
+        events:
+          type: array
+          items: { $ref: '#/components/schemas/TransactionEvent' }
