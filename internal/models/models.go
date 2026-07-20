@@ -59,6 +59,35 @@ type Transaction struct {
 	UpdatedAt         time.Time
 }
 
+// TransactionResponse é o contrato público de uma transação na API.
+// Ele também é persistido para que uma repetição idempotente receba
+// exatamente a mesma resposta da primeira requisição.
+type TransactionResponse struct {
+	ID            uuid.UUID         `json:"id"`
+	MerchantID    uuid.UUID         `json:"merchant_id"`
+	TerminalID    uuid.UUID         `json:"terminal_id"`
+	Amount        int64             `json:"amount"`
+	Currency      string            `json:"currency"`
+	PaymentMethod PaymentMethod     `json:"payment_method"`
+	Status        TransactionStatus `json:"status"`
+	CreatedAt     time.Time         `json:"created_at"`
+	UpdatedAt     time.Time         `json:"updated_at"`
+}
+
+func NewTransactionResponse(transaction Transaction) TransactionResponse {
+	return TransactionResponse{
+		ID:            transaction.ID,
+		MerchantID:    transaction.MerchantID,
+		TerminalID:    transaction.TerminalID,
+		Amount:        transaction.Amount,
+		Currency:      transaction.Currency,
+		PaymentMethod: transaction.PaymentMethod,
+		Status:        transaction.Status,
+		CreatedAt:     transaction.CreatedAt,
+		UpdatedAt:     transaction.UpdatedAt,
+	}
+}
+
 type TransactionEvent struct {
 	ID            uuid.UUID
 	TransactionID uuid.UUID
@@ -68,8 +97,10 @@ type TransactionEvent struct {
 }
 
 type IdempotencyKey struct {
-	Key       string
-	Endpoint  string
-	Response  json.RawMessage
-	CreatedAt time.Time
+	Key         string
+	Endpoint    string
+	RequestHash string
+	StatusCode  int16
+	Response    json.RawMessage
+	CreatedAt   time.Time
 }

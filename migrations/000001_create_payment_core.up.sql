@@ -72,6 +72,9 @@ CREATE TABLE transaction_events (
 CREATE TABLE idempotency_keys (
     key TEXT NOT NULL,
     endpoint TEXT NOT NULL,
+    request_hash TEXT NOT NULL DEFAULT '',
+
+    status_code SMALLINT NOT NULL DEFAULT 0,
 
     response JSONB NOT NULL,
 

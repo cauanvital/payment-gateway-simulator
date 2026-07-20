@@ -143,6 +143,28 @@ func (q *Queries) GetTransaction(ctx context.Context, id uuid.UUID) (Transaction
 	return i, err
 }
 
+const getTransactionForUpdate = `-- name: GetTransactionForUpdate :one
+SELECT id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at FROM transactions WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetTransactionForUpdate(ctx context.Context, id uuid.UUID) (Transaction, error) {
+	row := q.db.QueryRow(ctx, getTransactionForUpdate, id)
+	var i Transaction
+	err := row.Scan(
+		&i.ID,
+		&i.MerchantID,
+		&i.TerminalID,
+		&i.Amount,
+		&i.Currency,
+		&i.PaymentMethod,
+		&i.Status,
+		&i.AuthorizationCode,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const refundTransaction = `-- name: RefundTransaction :one
 UPDATE transactions SET status = 'REFUNDED', updated_at = now() WHERE id = $1 RETURNING id, merchant_id, terminal_id, amount, currency, payment_method, status, authorization_code, created_at, updated_at
 `

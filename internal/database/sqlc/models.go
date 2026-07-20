@@ -143,10 +143,12 @@ func (ns NullTransactionStatus) Value() (driver.Value, error) {
 }
 
 type IdempotencyKey struct {
-	Key       string             `json:"key"`
-	Endpoint  string             `json:"endpoint"`
-	Response  []byte             `json:"response"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Key         string             `json:"key"`
+	Endpoint    string             `json:"endpoint"`
+	RequestHash string             `json:"request_hash"`
+	StatusCode  int16              `json:"status_code"`
+	Response    []byte             `json:"response"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Merchant struct {

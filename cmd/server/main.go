@@ -57,7 +57,6 @@ func run() error {
 
 	txService := service.NewTransactionService(
 		pool,
-		terminalRepo,
 		&payment.PaymentStateMachine{},
 		&payment.Authorizer{},
 	)

@@ -17,3 +17,6 @@ UPDATE transactions SET status = 'REFUNDED', updated_at = now() WHERE id = $1 RE
 
 -- name: GetTransaction :one
 SELECT * FROM transactions WHERE id = $1;
+
+-- name: GetTransactionForUpdate :one
+SELECT * FROM transactions WHERE id = $1 FOR UPDATE;

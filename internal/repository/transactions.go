@@ -48,6 +48,15 @@ func (r *TransactionRepository) Get(ctx context.Context, id uuid.UUID) (*models.
 	return &transaction, nil
 }
 
+func (r *TransactionRepository) GetForUpdate(ctx context.Context, id uuid.UUID) (*models.Transaction, error) {
+	row, err := r.q.GetTransactionForUpdate(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	transaction := toDomainTransaction(row)
+	return &transaction, nil
+}
+
 func (r *TransactionRepository) Authorize(ctx context.Context, id uuid.UUID, authorizationCode string) (*models.Transaction, error) {
 	row, err := r.q.AuthorizeTransaction(ctx, sqlc.AuthorizeTransactionParams{
 		ID:                id,

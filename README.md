@@ -7,7 +7,7 @@ pagamentos e boas práticas de back-end.
 
 > ⚠️ **Projeto em construção.** CRUD de merchants e terminais, transações,
 > autorização simulada, captura, estorno e eventos já estão implementados.
-> Idempotência e documentação Swagger ainda são pendências. Veja o
+> Documentação Swagger e cobertura de testes ainda são pendências. Veja o
 > [roadmap](#roadmap).
 
 ## Motivação
@@ -19,6 +19,8 @@ para integrações e testes:
 - **Máquina de estados** para o ciclo de vida das transações.
 - **Eventos auditáveis**: cada criação ou mudança de estado gera um evento
   persistido.
+- **Idempotência transacional** via `Idempotency-Key`, que devolve a resposta
+  original sem repetir uma operação de pagamento.
 - **Autorização simulada** com regras previsíveis de aprovação, recusa e
   antifraude.
 - **Arquitetura em camadas** (`handler → service → state machine → repository`).
@@ -114,6 +116,8 @@ exemplo, `1500` para R$ 15,00). Os métodos aceitos são `CREDIT_CARD`,
    docker compose up -d db
    docker compose exec -T db psql -U pgsim -d pgsim < migrations/000001_create_payment_core.up.sql
    docker compose exec -T db psql -U pgsim -d pgsim < migrations/000002_create_triggers.up.sql
+   docker compose exec -T db psql -U pgsim -d pgsim < migrations/000003_add_columns_to_idempotency_keys_table.up.sql
+   docker compose exec -T db psql -U pgsim -d pgsim < migrations/000004_make_idempotency_status_code_required.up.sql
    ```
 
 3. Suba a API:
@@ -126,7 +130,7 @@ A API fica disponível em `http://localhost:8080`.
 
 > No PowerShell, substitua o redirecionamento das migrations por:
 > `Get-Content migrations/000001_create_payment_core.up.sql | docker compose exec -T db psql -U pgsim -d pgsim`
-> e repita para a migration `000002`.
+> e repita, em ordem, para cada migration `.up.sql`.
 
 ### Localmente
 
@@ -152,7 +156,9 @@ curl http://localhost:8080/health
 ## Endpoints
 
 Todas as respostas são JSON. Erros seguem o formato `{"error":"mensagem"}`.
-Os identificadores são UUIDs.
+Os identificadores são UUIDs. As operações `POST /transactions/`, captura e
+estorno exigem o header `Idempotency-Key`; repetir a mesma chave e a mesma
+requisição devolve a resposta original sem executar a operação novamente.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
@@ -194,6 +200,7 @@ status `AUTHORIZED`:
 ```bash
 curl -X POST http://localhost:8080/transactions/ \
   -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: venda-001' \
   -d '{
     "terminal_serial":"STONE-001",
     "amount":1500,
@@ -206,7 +213,8 @@ curl -X POST http://localhost:8080/transactions/ \
 Capture a transação com o UUID retornado:
 
 ```bash
-curl -X POST http://localhost:8080/transactions/<TRANSACTION_ID>/capture
+curl -X POST http://localhost:8080/transactions/<TRANSACTION_ID>/capture \
+  -H 'Idempotency-Key: captura-001'
 ```
 
 Para uma venda PIX ou débito, informe `PIX` ou `DEBIT_CARD`; uma autorização
@@ -231,8 +239,8 @@ build a cada push e pull request para `main`.
 - [x] Máquina de estados e TransactionService
 - [x] Autorização fake e registro de eventos
 - [x] Endpoints de captura e estorno
-- [x] Execução automática das migrations
-- [ ] Idempotência com `Idempotency-Key`
+- [ ] Execução automática das migrations
+- [x] Idempotência transacional com `Idempotency-Key`
 - [ ] Documentação Swagger
 - [ ] Cobertura de testes de state machine, service e HTTP
 
