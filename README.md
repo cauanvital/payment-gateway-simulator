@@ -243,7 +243,7 @@ build a cada push e pull request para `main`.
 - [x] Execução automática das migrations
 - [x] Idempotência transacional com `Idempotency-Key`
 - [x] Especificação OpenAPI 3.0
-- [ ] Interface Swagger UI
+- [x] Interface Swagger UI
 - [ ] Cobertura de testes de state machine, service e HTTP
 
 ## Melhorias futuras

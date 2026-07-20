@@ -35,6 +35,19 @@ func Router(logger *slog.Logger, h Handlers) http.Handler {
 	r.Get("/health", healthHandler)
 	r.Get("/healthz", healthHandler)
 
+	swaggerUI, err := SwaggerUIHandler()
+	if err != nil {
+		panic(err)
+	}
+
+	r.Get("/openapi.yaml", OpenAPIHandler)
+
+	r.Get("/swagger", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/swagger/", http.StatusMovedPermanently)
+	})
+
+	r.Mount("/swagger/", swaggerUI)
+
 	r.Route("/merchants", func(r chi.Router) {
 		r.Post("/", h.Merchant.Create)
 		r.Get("/", h.Merchant.List)
