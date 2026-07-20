@@ -16,6 +16,22 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    image: migrate/migrate:v4.19.1
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    command:
+      [
+        "-path", "/migrations",
+        "-database",
+        "postgres://${DB_USER:-pgsim}:${DB_PASSWORD:-pgsim}@db:5432/${DB_NAME:-pgsim}?sslmode=disable",
+        "up"
+      ]
+    restart: "no"
+
   app:
     build:
       context: .
@@ -24,6 +40,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       APP_ENV: ${APP_ENV:-development}
       SERVER_PORT: "8080"
