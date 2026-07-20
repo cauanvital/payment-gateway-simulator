@@ -38,11 +38,30 @@ jobs:
       - name: Vet
         run: go vet ./...
 
-      - name: Test
-        run: go test -race -count=1 ./...
+      - name: Unit tests and coverage
+        run: |
+          go test -race -count=1 -covermode=atomic -coverpkg=./internal/... \
+            -coverprofile=coverage-unit ./...
+          go tool cover -func=coverage-unit | tee coverage-unit.txt
 
-      - name: Integration test
+      - name: Integration tests and coverage
         run: make test-integration
+
+      - name: Publish coverage summary
+        run: |
+          go tool cover -func=coverage-integration | tee coverage-integration.txt
+          python3 scripts/merge_coverage.py coverage-all coverage-unit coverage-integration
+          go tool cover -func=coverage-all | tee coverage-all.txt
+
+          {
+            echo "## Test coverage"
+            echo
+            echo "| Suite | Coverage |"
+            echo "| --- | --- |"
+            echo "| Unit | $(tail -n 1 coverage-unit.txt) |"
+            echo "| Integration | $(tail -n 1 coverage-integration.txt) |"
+            echo "| Combined | $(tail -n 1 coverage-all.txt) |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build
         run: go build -o bin/server ./cmd/server

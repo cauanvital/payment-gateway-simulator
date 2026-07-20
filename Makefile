@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 BINARY := bin/server
 PKG := ./...
+INTEGRATION_COVERAGE := coverage-integration
 
 .PHONY: help
 help: ## Lista os comandos disponíveis
@@ -23,12 +24,12 @@ test: ## Roda os testes
 test-integration: ## Roda os testes de integraÃ§Ã£o com Postgres descartÃ¡vel
 	@trap 'docker compose -f tests/integration/docker-compose.yml down -v' EXIT; \
 		docker compose -f tests/integration/docker-compose.yml up -d --wait; \
-		TEST_DATABASE_URL='postgres://pgsim:pgsim@localhost:55432/pgsim_test?sslmode=disable' go test -tags=integration -count=1 ./tests/integration
+		TEST_DATABASE_URL='postgres://pgsim:pgsim@localhost:55432/pgsim_test?sslmode=disable' go test -tags=integration -count=1 -covermode=atomic -coverpkg=./internal/... -coverprofile=$(INTEGRATION_COVERAGE) ./tests/integration
 
 .PHONY: cover
 cover: ## Roda os testes com relatório de cobertura
-	go test -race -coverprofile=coverage.out $(PKG)
-	go tool cover -func=coverage.out
+	go test -race -covermode=atomic -coverpkg=./internal/... -coverprofile=coverage-unit $(PKG)
+	go tool cover -func=coverage-unit
 
 .PHONY: fmt
 fmt: ## Formata o código
@@ -59,4 +60,4 @@ down: ## Derruba os containers
 
 .PHONY: clean
 clean: ## Remove artefatos de build
-	rm -rf bin coverage.out
+	rm -rf bin coverage coverage-unit coverage-integration coverage-all coverage-unit.txt coverage-integration.txt coverage-all.txt
